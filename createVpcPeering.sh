@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Global variables
-REQUESTER_VPC_ID='vpc-0eb87ba7da509ddad'
-ACCEPTOR_OWNER_ID='391180499744'
-ACCEPTOR_VPC_ID='vpc-02413614c5554d9d3'
-ACCEPTOR_REGION='ap-south-1'
+REQUESTER_VPC_ID=<Requester VPC ID>
+ACCEPTOR_OWNER_ID=<Acceptor Owner ID>
+ACCEPTOR_VPC_ID=<Acceptor VPC ID>
+ACCEPTOR_REGION=<Acceptor Region>
 
 # To create a VPC peering connection
 echo "Creating VPC-Peering Connection..."
