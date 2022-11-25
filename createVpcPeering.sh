@@ -22,5 +22,66 @@ VpcPeeringConnectionId=$(echo -e "$awsResponse" | \
                         jq '.VpcPeeringConnection.VpcPeeringConnectionId' | \
                         tr -d '"')
 
+# Tagging
+aws ec2 create-tags \
+		--resources "$VpcPeeringConnectionId" \
+		--tags Key=Name,Value="Script-Peer-Test"
+
 echo "Peering Connection Created.\n"
 echo "VPC Peering Connection Id: $VpcPeeringConnectionId"
+
+# Check if VPC Connection request is accepted or not.
+while  [ "$peeringStatus" != "active" ]
+do
+    echo "Peering connection is not Active, Please accept "$VpcPeeringConnectionId" connection request."
+    sleep 10
+    awsDescribeResponse=$(aws ec2 describe-vpc-peering-connections \
+                    --vpc-peering-connection-ids "$VpcPeeringConnectionId" \
+                    --output json)
+    
+    peeringStatus=$(echo -e $awsDescribeResponse | \
+            jq '.VpcPeeringConnections[].Status.Code' | \
+            tr -d '"')  
+done
+
+
+if [ "$peeringStatus" == "active" ]
+then
+    echo "Peering connection with  "$VpcPeeringConnectionId" is Active."
+fi
+
+sleep 5
+
+# Getting Requester CIDR
+requesterCidr=$(aws ec2 describe-vpc-peering-connections \
+              --query 'VpcPeeringConnections[?VpcPeeringConnectionId==`'$VpcPeeringConnectionId'`].RequesterVpcInfo.CidrBlock' \
+              --output text)
+
+# Getting Acceptor CIDR
+acceptorCidr=$(aws ec2 describe-vpc-peering-connections \
+              --query 'VpcPeeringConnections[?VpcPeeringConnectionId==`'$VpcPeeringConnectionId'`].AccepterVpcInfo.CidrBlock' \
+              --output text)
+
+
+# Get list of route tables for requester
+associatedRouteTable=$(aws ec2 describe-route-tables \
+                    --filters "Name=vpc-id,Values=$REQUESTER_VPC_ID" \
+                    --query 'RouteTables[*].Associations[*].RouteTableId' \
+                    --output text)
+
+# Save respone to temp.txt
+echo $associatedRouteTable | tr ' ' '\n'>temp.txt
+
+# Add peering route to all subnet route tables
+echo "Updating Routes in Route Table..."
+while read routeTableId
+do
+    awsCreateRTResponse=$(aws ec2 create-route --route-table-id $routeTableId \
+                         --destination-cidr-block $requesterCidr \
+                         --vpc-peering-connection-id $VpcPeeringConnectionId)
+done < temp.txt
+
+# Clean temp file
+rm temp.txt
+sleep 2
+echo "Routes Added."
