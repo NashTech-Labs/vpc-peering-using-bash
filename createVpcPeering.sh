@@ -21,11 +21,12 @@ awsResponse=$(aws ec2 create-vpc-peering-connection \
 VpcPeeringConnectionId=$(echo -e "$awsResponse" | \
                         jq '.VpcPeeringConnection.VpcPeeringConnectionId' | \
                         tr -d '"')
+echo VpcPeeringConnectionId
 
 # Tagging
 aws ec2 create-tags \
 		--resources "$VpcPeeringConnectionId" \
-		--tags Key=Name,Value="Script-Peer-Test"
+		--tags Key=Name,Value="Script-Peering-Test"
 
 echo "Peering Connection Created.\n"
 echo "VPC Peering Connection Id: $VpcPeeringConnectionId"
@@ -57,11 +58,8 @@ requesterCidr=$(aws ec2 describe-vpc-peering-connections \
               --query 'VpcPeeringConnections[?VpcPeeringConnectionId==`'$VpcPeeringConnectionId'`].RequesterVpcInfo.CidrBlock' \
               --output text)
 
-# Getting Acceptor CIDR
-acceptorCidr=$(aws ec2 describe-vpc-peering-connections \
-              --query 'VpcPeeringConnections[?VpcPeeringConnectionId==`'$VpcPeeringConnectionId'`].AccepterVpcInfo.CidrBlock' \
-              --output text)
-
+echo $requesterCidr
+# echo $acceptorCidr
 
 # Get list of route tables for requester
 associatedRouteTable=$(aws ec2 describe-route-tables \
