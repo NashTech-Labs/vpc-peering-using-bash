@@ -1,6 +1,6 @@
 # vpc-peering-using-bash
 
-This repository contains scripts to perform VPC peering between two VPCs. Both VPCs can be in same region, differentregion and different account.
+This repository contains scripts to perform VPC peering between two VPCs. Both VPCs can be in same region, different region and different account. This script also updates the route table of both VPCs.
 
 -------------
 
