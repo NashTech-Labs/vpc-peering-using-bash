@@ -45,7 +45,7 @@ do
             tr -d '"')  
 done
 
-
+# Check peering status
 if [ "$peeringStatus" == "active" ]
 then
     echo "Peering connection with  "$VpcPeeringConnectionId" is Active."
@@ -57,9 +57,6 @@ sleep 5
 requesterCidr=$(aws ec2 describe-vpc-peering-connections \
               --query 'VpcPeeringConnections[?VpcPeeringConnectionId==`'$VpcPeeringConnectionId'`].RequesterVpcInfo.CidrBlock' \
               --output text)
-
-echo $requesterCidr
-# echo $acceptorCidr
 
 # Get list of route tables for requester
 associatedRouteTable=$(aws ec2 describe-route-tables \
